@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Atelier Couture",
   description: "Créations sur mesure — Boubous, costumes, robes et tenues de cérémonie.",
   manifest: "/manifest.json",
+  icons: { icon: "/logo.png", apple: "/logo.png" },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
     title: "Atelier Couture",
     description: "Créations sur mesure — Boubous, costumes, robes et tenues de cérémonie.",
     type: "website",
+    images: ["/logo.png"],
   },
 };
 
@@ -34,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="apple-touch-icon" href="/logo.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>

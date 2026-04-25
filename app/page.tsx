@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Scissors, Star, Clock } from "lucide-react";
+import { ArrowRight, Star, Clock } from "lucide-react";
 import { creationsApi, categoriesApi, avisApi, type ApiCreation, type ApiCategorie, type ApiAvis } from "@/lib/api";
 
 export default function HomePage() {
@@ -22,9 +22,7 @@ export default function HomePage() {
       <header className="px-5 pt-12 pb-4 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="w-7 h-7 bg-terra-500 rounded-lg flex items-center justify-center">
-              <Scissors size={14} className="text-white" strokeWidth={2} />
-            </div>
+            <Image src="/logo.png" alt="Logo" width={28} height={28} className="rounded-lg object-contain" />
             <span className="font-body text-xs font-medium text-terra-500 tracking-widest uppercase">
               Atelier
             </span>

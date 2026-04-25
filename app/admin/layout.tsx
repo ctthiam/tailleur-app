@@ -1,7 +1,8 @@
 "use client";
 
-import { Scissors, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
+import Image from "next/image";
 import AdminNav from "@/components/admin/AdminNav";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -24,9 +25,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         style={{ paddingTop: "max(2.5rem, env(safe-area-inset-top))" }}
       >
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-terra-500 rounded-lg flex items-center justify-center">
-            <Scissors size={14} className="text-white" strokeWidth={2} />
-          </div>
+          <Image src="/logo.png" alt="Logo" width={28} height={28} className="rounded-lg object-contain" />
           <span className="font-display text-white text-base font-semibold">
             Atelier — Admin
           </span>

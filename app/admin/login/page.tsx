@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Scissors, Eye, EyeOff, AlertCircle } from "lucide-react";
+import Image from "next/image";
+import { ArrowLeft, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { authApi } from "@/lib/api";
 
 export default function AdminLoginPage() {
@@ -40,9 +41,7 @@ export default function AdminLoginPage() {
       <div className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 bg-terra-500 rounded-2xl flex items-center justify-center">
-            <Scissors size={22} className="text-white" strokeWidth={2} />
-          </div>
+          <Image src="/logo.png" alt="Logo" width={48} height={48} className="rounded-2xl object-contain" />
           <div>
             <p className="font-body text-creme-300 text-xs tracking-widest uppercase mb-0.5">Atelier</p>
             <h1 className="font-display text-white text-xl font-semibold">Espace Admin</h1>
