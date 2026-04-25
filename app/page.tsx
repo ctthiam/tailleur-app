@@ -46,7 +46,7 @@ export default function HomePage() {
             src="/Barham.jpeg"
             alt="Barham Design"
             fill
-            className="object-cover opacity-50"
+            className="object-cover object-top opacity-50"
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-r from-brun-900/80 to-transparent" />
