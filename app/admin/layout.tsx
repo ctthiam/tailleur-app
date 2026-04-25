@@ -1,11 +1,14 @@
 "use client";
 
 import { Scissors, LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import AdminNav from "@/components/admin/AdminNav";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
+  const router   = useRouter();
+  const pathname = usePathname();
+
+  if (pathname === "/admin/login") return <>{children}</>;
 
   const logout = () => {
     localStorage.removeItem("token");
