@@ -1,36 +1,53 @@
 "use client";
 
-import { useState } from "react";
-import { Phone, MessageCircle, ChevronRight, ChevronDown, X } from "lucide-react";
-import { commandes as initial, STATUTS, type Commande, type StatutCommande } from "@/lib/commandes";
+import { useState, useEffect } from "react";
+import { Phone, MessageCircle, ChevronRight, ChevronDown, X, Loader2 } from "lucide-react";
+import { commandesApi, type ApiCommande } from "@/lib/api";
 
-const ORDRE_STATUTS: StatutCommande[] = ["nouveau", "en_cours", "pret", "livre", "annule"];
+const STATUTS = {
+  NOUVEAU:  { label: "Nouveau",  color: "text-terra-600", bg: "bg-terra-100" },
+  EN_COURS: { label: "En cours", color: "text-or-600",    bg: "bg-or-100"   },
+  PRET:     { label: "Prêt",     color: "text-foret-600", bg: "bg-foret-100" },
+  LIVRE:    { label: "Livré",    color: "text-brun-500",  bg: "bg-creme-200" },
+  ANNULE:   { label: "Annulé",   color: "text-red-500",   bg: "bg-red-50"   },
+} as const;
+
+const ORDRE_STATUTS = ["NOUVEAU", "EN_COURS", "PRET", "LIVRE", "ANNULE"] as const;
+type StatutKey = keyof typeof STATUTS;
 
 export default function AdminCommandesPage() {
-  const [items, setItems]           = useState<Commande[]>(initial);
-  const [filtre, setFiltre]         = useState<StatutCommande | "tous">("tous");
-  const [selected, setSelected]     = useState<Commande | null>(null);
+  const [items, setItems]       = useState<ApiCommande[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [filtre, setFiltre]     = useState<StatutKey | "tous">("tous");
+  const [selected, setSelected] = useState<ApiCommande | null>(null);
+
+  useEffect(() => {
+    commandesApi.getAll()
+      .then(setItems)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = filtre === "tous" ? items : items.filter((c) => c.statut === filtre);
+  const countByStatut = (s: StatutKey) => items.filter((c) => c.statut === s).length;
 
-  const updateStatut = (id: string, statut: StatutCommande) => {
-    setItems((prev) => prev.map((c) => (c.id === id ? { ...c, statut } : c)));
-    if (selected?.id === id) setSelected((s) => s ? { ...s, statut } : s);
+  const updateStatut = async (id: string, statut: StatutKey) => {
+    try {
+      await commandesApi.updateStatut(id, statut);
+      setItems((prev) => prev.map((c) => (c.id === id ? { ...c, statut } : c)));
+      if (selected?.id === id) setSelected((s) => (s ? { ...s, statut } : s));
+    } catch {}
   };
-
-  const countByStatut = (s: StatutCommande) => items.filter((c) => c.statut === s).length;
 
   return (
     <div className="pb-10">
-      {/* En-tête */}
       <div className="px-5 pt-5 pb-4">
         <h1 className="font-display text-xl font-semibold text-brun-900">Commandes</h1>
         <p className="font-body text-xs text-brun-500">
-          {items.length} commandes · {countByStatut("nouveau")} nouvelles
+          {items.length} commandes · {countByStatut("NOUVEAU")} nouvelles
         </p>
       </div>
 
-      {/* Filtres statut */}
       <div className="flex gap-2 px-5 overflow-x-auto pb-1 mb-4">
         <button
           onClick={() => setFiltre("tous")}
@@ -49,9 +66,7 @@ export default function AdminCommandesPage() {
               key={s}
               onClick={() => setFiltre(s)}
               className={`flex-shrink-0 font-body text-xs font-medium px-3 py-2 rounded-xl transition-colors whitespace-nowrap ${
-                filtre === s
-                  ? `${bg} ${color} ring-1 ring-current`
-                  : "bg-white text-brun-700 shadow-card"
+                filtre === s ? `${bg} ${color} ring-1 ring-current` : "bg-white text-brun-700 shadow-card"
               }`}
             >
               {label} ({count})
@@ -60,93 +75,90 @@ export default function AdminCommandesPage() {
         })}
       </div>
 
-      {/* Liste */}
-      <div className="px-5 space-y-3">
-        {filtered.map((cmd) => {
-          const { label, color, bg } = STATUTS[cmd.statut];
-          return (
-            <button
-              key={cmd.id}
-              onClick={() => setSelected(cmd)}
-              className="card p-4 w-full text-left flex items-center gap-3 active:scale-95 transition-transform"
-            >
-              {/* Avatar */}
-              <div className="w-10 h-10 rounded-full bg-terra-100 flex items-center justify-center flex-shrink-0">
-                <span className="font-body text-sm font-semibold text-terra-600">
-                  {cmd.nom.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                </span>
-              </div>
-
-              {/* Infos */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <p className="font-body text-sm font-semibold text-brun-900 truncate">{cmd.nom}</p>
-                  {cmd.statut === "nouveau" && (
-                    <span className="w-2 h-2 bg-terra-500 rounded-full flex-shrink-0" />
-                  )}
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <Loader2 size={24} className="animate-spin text-terra-500" />
+        </div>
+      ) : (
+        <div className="px-5 space-y-3">
+          {filtered.map((cmd) => {
+            const { label, color, bg } = STATUTS[cmd.statut];
+            return (
+              <button
+                key={cmd.id}
+                onClick={() => setSelected(cmd)}
+                className="card p-4 w-full text-left flex items-center gap-3 active:scale-95 transition-transform"
+              >
+                <div className="w-10 h-10 rounded-full bg-terra-100 flex items-center justify-center flex-shrink-0">
+                  <span className="font-body text-sm font-semibold text-terra-600">
+                    {cmd.nom.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                  </span>
                 </div>
-                <p className="font-body text-xs text-brun-500 truncate">{cmd.typeTenue}</p>
-                <p className="font-body text-[10px] text-brun-400 mt-0.5">
-                  {new Date(cmd.dateCommande).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
-                  {" · livraison "}
-                  {new Date(cmd.datelivraison).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
-                </p>
-              </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="font-body text-sm font-semibold text-brun-900 truncate">{cmd.nom}</p>
+                    {cmd.statut === "NOUVEAU" && (
+                      <span className="w-2 h-2 bg-terra-500 rounded-full flex-shrink-0" />
+                    )}
+                  </div>
+                  <p className="font-body text-xs text-brun-500 truncate">{cmd.typeTenue}</p>
+                  <p className="font-body text-[10px] text-brun-400 mt-0.5">
+                    {new Date(cmd.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                    {" · livraison "}
+                    {new Date(cmd.dateLivraison).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                  </p>
+                </div>
+                <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                  <span className={`badge text-[10px] ${bg} ${color}`}>{label}</span>
+                  <ChevronRight size={14} className="text-brun-300" />
+                </div>
+              </button>
+            );
+          })}
 
-              {/* Statut */}
-              <div className="flex-shrink-0 flex flex-col items-end gap-2">
-                <span className={`badge text-[10px] ${bg} ${color}`}>{label}</span>
-                <ChevronRight size={14} className="text-brun-300" />
-              </div>
-            </button>
-          );
-        })}
+          {filtered.length === 0 && (
+            <p className="text-center font-body text-sm text-brun-400 py-12">
+              Aucune commande dans cette catégorie
+            </p>
+          )}
+        </div>
+      )}
 
-        {filtered.length === 0 && (
-          <p className="text-center font-body text-sm text-brun-400 py-12">
-            Aucune commande dans cette catégorie
-          </p>
-        )}
-      </div>
-
-      {/* Drawer détail commande */}
       {selected && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={() => setSelected(null)}>
           <div
             className="bg-white w-full max-w-md mx-auto rounded-t-3xl max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Handle */}
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 bg-creme-300 rounded-full" />
             </div>
-
             <div className="px-5 pb-8 pt-2">
-              {/* Header drawer */}
               <div className="flex items-start justify-between mb-5">
                 <div>
                   <h2 className="font-display text-xl font-semibold text-brun-900">{selected.nom}</h2>
                   <p className="font-body text-xs text-brun-500">{selected.telephone}</p>
                 </div>
-                <button onClick={() => setSelected(null)} className="w-8 h-8 bg-creme-200 rounded-xl flex items-center justify-center">
+                <button
+                  onClick={() => setSelected(null)}
+                  className="w-8 h-8 bg-creme-200 rounded-xl flex items-center justify-center"
+                >
                   <X size={15} className="text-brun-700" />
                 </button>
               </div>
 
-              {/* Détails tenue */}
               <div className="bg-creme-100 rounded-2xl p-4 space-y-2.5 mb-5">
                 <Row label="Type de tenue" value={selected.typeTenue} />
-                {selected.tissu   && <Row label="Tissu"    value={selected.tissu} />}
-                {selected.mesures && <Row label="Mesures"  value={selected.mesures} />}
+                {selected.tissu   && <Row label="Tissu"   value={selected.tissu} />}
+                {selected.mesures && <Row label="Mesures" value={selected.mesures} />}
                 <Row
                   label="Date de livraison"
-                  value={new Date(selected.datelivraison).toLocaleDateString("fr-FR", {
+                  value={new Date(selected.dateLivraison).toLocaleDateString("fr-FR", {
                     weekday: "long", day: "numeric", month: "long",
                   })}
                 />
               </div>
 
-              {/* Message */}
               {selected.message && (
                 <div className="mb-5">
                   <p className="font-body text-xs font-medium text-brun-500 mb-2">Message du client</p>
@@ -158,13 +170,12 @@ export default function AdminCommandesPage() {
                 </div>
               )}
 
-              {/* Changer statut */}
               <div className="mb-5">
                 <p className="font-body text-xs font-medium text-brun-700 mb-2">Statut de la commande</p>
                 <div className="relative">
                   <select
                     value={selected.statut}
-                    onChange={(e) => updateStatut(selected.id, e.target.value as StatutCommande)}
+                    onChange={(e) => updateStatut(selected.id, e.target.value as StatutKey)}
                     className="w-full bg-white border border-creme-300 rounded-2xl px-4 py-3 font-body text-sm text-brun-900 outline-none focus:border-terra-400 appearance-none"
                   >
                     {ORDRE_STATUTS.map((s) => (
@@ -175,7 +186,6 @@ export default function AdminCommandesPage() {
                 </div>
               </div>
 
-              {/* Contacter */}
               <div className="grid grid-cols-2 gap-3">
                 <a
                   href={`tel:${selected.telephone}`}

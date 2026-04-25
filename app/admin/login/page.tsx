@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
             <input
               type="email"
               required
-              placeholder="admin@atelier.sn"
+              placeholder="votre@email.com"
               value={form.email}
               onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
               className="w-full bg-white/10 border border-white/20 text-white placeholder:text-creme-400 rounded-2xl px-4 py-3.5 font-body text-sm outline-none focus:border-terra-400 transition-colors"

@@ -1,55 +1,48 @@
 "use client";
 
-import { useState } from "react";
-import { Check, Trash2, Star, Eye, EyeOff } from "lucide-react";
-import { avis as initialAvis, type Avis } from "@/lib/data";
+import { useState, useEffect } from "react";
+import { Check, Trash2, Star, EyeOff, Loader2 } from "lucide-react";
+import { avisApi, type ApiAvis } from "@/lib/api";
 
-type AvisAdmin = Avis & { publie: boolean; en_attente: boolean };
-
-const avisAdmin: AvisAdmin[] = [
-  ...initialAvis.map((a) => ({ ...a, publie: true, en_attente: false })),
-  {
-    id: "4",
-    nom: "Oumar Sy",
-    ville: "Ziguinchor",
-    note: 5,
-    commentaire: "Travail exceptionnel ! Mon boubou était parfait pour la cérémonie. Je reviendrai certainement.",
-    tenue: "Grand Boubou Broderie Or",
-    avatar: "OS",
-    publie: false,
-    en_attente: true,
-  },
-  {
-    id: "5",
-    nom: "Khady Diouf",
-    ville: "Thiès",
-    note: 4,
-    commentaire: "Très satisfaite de ma robe. Légèrement en retard sur le délai mais le résultat valait l'attente.",
-    tenue: "Robe Pagne Wax Festive",
-    avatar: "KD",
-    publie: false,
-    en_attente: true,
-  },
-];
+function initials(nom: string) {
+  return nom.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+}
 
 export default function AdminAvisPage() {
-  const [items, setItems] = useState<AvisAdmin[]>(avisAdmin);
+  const [items, setItems]     = useState<ApiAvis[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const publies   = items.filter((a) => a.publie);
-  const attente   = items.filter((a) => a.en_attente);
+  useEffect(() => {
+    avisApi.getAllAdmin()
+      .then(setItems)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
-  const publier = (id: string) =>
-    setItems((prev) =>
-      prev.map((a) => a.id === id ? { ...a, publie: true, en_attente: false } : a)
+  const publies = items.filter((a) => a.publie);
+  const attente = items.filter((a) => !a.publie);
+
+  const toggle = async (id: string) => {
+    try {
+      await avisApi.toggle(id);
+      setItems((prev) => prev.map((a) => (a.id === id ? { ...a, publie: !a.publie } : a)));
+    } catch {}
+  };
+
+  const supprimer = async (id: string) => {
+    try {
+      await avisApi.remove(id);
+      setItems((prev) => prev.filter((a) => a.id !== id));
+    } catch {}
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Loader2 size={24} className="animate-spin text-terra-500" />
+      </div>
     );
-
-  const toggleVisi = (id: string) =>
-    setItems((prev) =>
-      prev.map((a) => a.id === id ? { ...a, publie: !a.publie } : a)
-    );
-
-  const supprimer = (id: string) =>
-    setItems((prev) => prev.filter((a) => a.id !== id));
+  }
 
   return (
     <div className="pb-10">
@@ -60,7 +53,6 @@ export default function AdminAvisPage() {
         </p>
       </div>
 
-      {/* En attente de modération */}
       {attente.length > 0 && (
         <div className="px-5 mb-6">
           <div className="flex items-center gap-2 mb-3">
@@ -75,7 +67,7 @@ export default function AdminAvisPage() {
                 <AvisCard avis={a} />
                 <div className="flex gap-2 mt-4">
                   <button
-                    onClick={() => publier(a.id)}
+                    onClick={() => toggle(a.id)}
                     className="flex-1 flex items-center justify-center gap-1.5 bg-foret-500 text-white font-body text-sm font-medium py-2.5 rounded-xl"
                   >
                     <Check size={14} /> Publier
@@ -93,7 +85,6 @@ export default function AdminAvisPage() {
         </div>
       )}
 
-      {/* Avis publiés */}
       <div className="px-5">
         <h2 className="font-display text-base font-semibold text-brun-900 mb-3">
           Publiés ({publies.length})
@@ -104,14 +95,10 @@ export default function AdminAvisPage() {
               <AvisCard avis={a} />
               <div className="flex gap-2 mt-4">
                 <button
-                  onClick={() => toggleVisi(a.id)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 font-body text-sm font-medium py-2.5 rounded-xl ${
-                    a.publie
-                      ? "bg-creme-200 text-brun-700"
-                      : "bg-foret-100 text-foret-700"
-                  }`}
+                  onClick={() => toggle(a.id)}
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-creme-200 text-brun-700 font-body text-sm font-medium py-2.5 rounded-xl"
                 >
-                  {a.publie ? <><EyeOff size={14} /> Masquer</> : <><Eye size={14} /> Afficher</>}
+                  <EyeOff size={14} /> Masquer
                 </button>
                 <button
                   onClick={() => supprimer(a.id)}
@@ -122,22 +109,25 @@ export default function AdminAvisPage() {
               </div>
             </div>
           ))}
+          {publies.length === 0 && (
+            <p className="text-center font-body text-sm text-brun-400 py-8">Aucun avis publié</p>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function AvisCard({ avis }: { avis: AvisAdmin }) {
+function AvisCard({ avis }: { avis: ApiAvis }) {
   return (
     <>
       <div className="flex items-center gap-3 mb-3">
         <div className="w-10 h-10 rounded-full bg-terra-100 flex items-center justify-center flex-shrink-0">
-          <span className="font-body text-sm font-semibold text-terra-600">{avis.avatar}</span>
+          <span className="font-body text-sm font-semibold text-terra-600">{initials(avis.nom)}</span>
         </div>
         <div className="flex-1">
           <p className="font-body text-sm font-semibold text-brun-900">{avis.nom}</p>
-          <p className="font-body text-xs text-brun-400">{avis.ville}</p>
+          {avis.ville && <p className="font-body text-xs text-brun-400">{avis.ville}</p>}
         </div>
         <div className="flex items-center gap-0.5">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -153,10 +143,12 @@ function AvisCard({ avis }: { avis: AvisAdmin }) {
       <p className="font-body text-sm text-brun-700 leading-relaxed italic mb-3">
         &ldquo;{avis.commentaire}&rdquo;
       </p>
-      <div className="inline-flex items-center gap-1.5 bg-creme-200 rounded-xl px-3 py-1.5">
-        <span className="text-xs">✂️</span>
-        <span className="font-body text-[11px] text-brun-600 font-medium">{avis.tenue}</span>
-      </div>
+      {avis.tenue && (
+        <div className="inline-flex items-center gap-1.5 bg-creme-200 rounded-xl px-3 py-1.5">
+          <span className="text-xs">✂️</span>
+          <span className="font-body text-[11px] text-brun-600 font-medium">{avis.tenue}</span>
+        </div>
+      )}
     </>
   );
 }
