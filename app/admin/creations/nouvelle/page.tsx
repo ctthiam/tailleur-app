@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Plus, X, CheckCircle, ImagePlus, ChevronDown, AlertCircle } from "lucide-react";
 import Image from "next/image";
-import { categories } from "@/lib/data";
-import { creationsApi } from "@/lib/api";
+import { creationsApi, categoriesApi, type ApiCategorie } from "@/lib/api";
 
 const TISSUS_COURANTS = [
   "Bazin riche", "Bazin léger", "Wax", "Bogolan",
@@ -20,7 +19,12 @@ export default function NouvelleCreationPage() {
   const [tissuInput, setTissuInput] = useState("");
   const [previews, setPreviews]     = useState<string[]>([]);
   const [files, setFiles]           = useState<File[]>([]);
+  const [categories, setCategories] = useState<ApiCategorie[]>([]);
   const fileRef                     = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    categoriesApi.getAll().then(setCategories).catch(() => {});
+  }, []);
 
   const [form, setForm] = useState({
     titre:       "",
