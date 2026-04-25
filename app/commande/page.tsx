@@ -115,7 +115,7 @@ function CommandeForm() {
               <input
                 type="text"
                 required
-                placeholder="Mamadou Diallo"
+                placeholder="Cheikh Thiam"
                 value={form.nom}
                 onChange={(e) => update("nom", e.target.value)}
                 className="w-full bg-white border border-creme-300 rounded-2xl px-4 py-3 font-body text-sm text-brun-900 placeholder:text-brun-300 outline-none focus:border-terra-400 transition-colors"
