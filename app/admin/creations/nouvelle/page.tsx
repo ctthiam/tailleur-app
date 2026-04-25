@@ -65,8 +65,8 @@ export default function NouvelleCreationPage() {
         await creationsApi.uploadMedias(creation.id, files, true);
       }
       setSaved(true);
-    } catch {
-      setError("Une erreur est survenue. Vérifiez votre connexion et réessayez.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Une erreur est survenue. Vérifiez votre connexion et réessayez.");
     } finally {
       setLoading(false);
     }

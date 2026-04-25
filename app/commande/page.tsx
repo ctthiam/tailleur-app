@@ -53,8 +53,8 @@ function CommandeForm() {
         message:      form.message || undefined,
       });
       setSubmitted(true);
-    } catch {
-      setError("Une erreur est survenue. Vérifiez votre connexion et réessayez.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Une erreur est survenue. Vérifiez votre connexion et réessayez.");
     } finally {
       setLoading(false);
     }
