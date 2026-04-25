@@ -43,10 +43,10 @@ export default function HomePage() {
       <section className="px-5 mb-6">
         <div className="relative rounded-3xl overflow-hidden h-52 bg-brun-900">
           <Image
-            src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=85"
-            alt="Atelier couture"
+            src="/Barham.jpeg"
+            alt="Barham Design"
             fill
-            className="object-cover opacity-60"
+            className="object-cover opacity-50"
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-r from-brun-900/80 to-transparent" />
